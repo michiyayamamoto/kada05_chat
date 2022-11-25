@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>日報アプリ</title>
+    <link rel="stylesheet" href="css/style.css" />
+    <link rel="stylesheet" href="https://pro.fontawesome.com/releases/v5.10.0/css/all.css"
+        integrity="sha384-AYmEC3Yw5cVb3ZcuHtOA93w35dYTsvhLPVnYs9eStHfGJvOvKxVfELGroGkvsg+p" crossorigin="anonymous" />
+</head>
+<body>
+<main>
+    <div class="contents">
+        <!-- sidebar section　位置は左 -->
+        <div class="sidebar">
+            <header>All Notes</header>
+            <!-- <div class="search_area"></div>
+                    <input type="search" placeholder="検索" name="" id=""> -->
+            <!-- id:allnoteにどんどん追加される。 -->
+            <ul id="allnote">
+                <!-- <li>
+                        ここに追加されていく
+                    </li> -->
+            </ul>
+        </div>
+        <!-- テキストエリア　位置は右 -->
+        <div class="note">
+            <header class="noteheader">
+                <a href="" class="iconleft"><i class="fa-thin fa-circle-info"></i></a>
+                <a href="" class="iconright"><i class="fa-thin fa-circle-info"></i></a>
+                <a href="" class="iconright"><i class="fa-thin fa-circle-info"></i></a>
+                <a href="" class="iconright"><i class="fa-thin fa-circle-ellipsis-vertical"></i></a>
+            </header>
+            <!-- <div class="text"> -->
+            <input type="text" id="title" placeholder="メモのタイトルを入れてください。">
+            <textarea id="text" placeholder="本文を入れてください"></textarea>
+            <ul>
+                <li id="save" class="savebutton">Save</li>
+                <li id="clear" class="clearbutton">Clear</li>
+            </ul>
+            <!-- </div> -->
+        </div>
+    </div>
+</main>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+<script src="js/memo.js"></script>
+<!--** 以下Firebase **-->
+<script type="module">
+    // Import the functions you need from the SDKs you need
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.1.0/firebase-app.js";
+    // 貼り付ける場所
+    import { getDatabase, ref, push, set, onChildAdded, remove, onChildRemoved } from "https://www.gstatic.com/firebasejs/9.1.0/firebase-database.js";
+    // 
+    // TODO: Add SDKs for Firebase products that you want to use
+    // https://firebase.google.com/docs/web/setup#available-libraries
+    // Your web app's Firebase configuration
+    const firebaseConfig = {
+        apiKey: "AIzaSyBkZ30CD9uSmEIBDb2E_g-PE82X3dmug-M",
+        authDomain: "memo-6e87e.firebaseapp.com",
+        projectId: "memo-6e87e",
+        storageBucket: "memo-6e87e.appspot.com",
+        messagingSenderId: "71702411569",
+        appId: "1:71702411569:web:17896c9a279834f8d19810"
+    };
+    // Initialize Firebase
+    const app = initializeApp(firebaseConfig);
+    // この辺りに書いていきます
+    const db = getDatabase(app);
+    const dbRef = ref(db, "memo");
+
+
+    // 送信処理を記述
+    $('#save').on('click', function () {
+        // id="key"と"memo"" の場所を取得します🤗
+        const title = $('#title').val();
+        const text = $('#text').val();
+        // 空白をチェック
+        if (!title) {
+            alert('タイトルが入力されていません。');
+            return false;
+        }
+        if (!text) {
+            alert('本文が入力されていません。');
+            return false;
+        }
+        const msg = {
+            title: title,
+            text: text,
+        }
+        // firebaseに送る準備をしていることになります🤗
+        const newPostRef = push(dbRef) //データを送信できる準備
+        set(newPostRef, msg); // firebaseの登録できる場所に保存するイメージです🤗
+    });
+    // $("#text").on('keydown', function (e) {
+    //     console.log(e, 'イベントのデータの塊')
+    //     console.log(e.keyCode, 'イベントのデータの塊')
+    //     // この下消さない　キーボードを押した時のクリック
+    // });
+
+    // 受信処理を記述
+    onChildAdded(dbRef, function (data) {
+        // ここからが受信処理が始まります
+
+        // 登録されたデータを取得します🤗
+        const msg = data.val();
+        console.log(msg, '取得したデータの塊')
+        const key = data.key;
+        console.log(key, 'データの塊にアクセス')
+        // es6のテンプレートリテラル
+        let html =
+            `
+                <li id=${key}>${msg.title}
+                <p id=${msg.text}>${msg.text}</p>
+                <p id=${key} class=delete>×</p>
+                </li>
+                `;
+        // htmlに埋め込みましょう🤗
+        // append();というjqueryのおまじないを使います
+        $("#allnote").append(html);
+    });
+    
+    //クリックした場所のIDを取得して、画面に表示する
+    function addlist() {
+        $('#allnote li').on('click', function () {
+            let id_name = $(this).attr('id');
+            console.log(id_name, "id取得できているか")
+            // console.log(text, "text取得できているか")
+            // $("#title").val(text);
+            // $("#text").val(id_name);     
+        });
+    };
+    addlist()
+
+
+    $('.delete').on('click', function () {
+    const value=$(this).attr("id");   
+    console.log(value,"内容を取得")
+        ref.Child(value).Remove();
+    })
+
+</script>
+</body>
+</html>
